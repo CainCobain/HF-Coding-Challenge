@@ -34,9 +34,10 @@ app.use(session({
 //--------> END SET UP <--------
 
   //Models
-  let Shops = require('./models/shop.js');
-  let UserShops = require('./models/user_shop.js');
+  let Shops = require('./models/shop');
+  let UserShops = require('./models/user_shop');
   let User = require('./models/user');
+  let sessionss = require('./models/sessions');
 
   //--------> GET Shops nearby and not in liked user shop collection <<<<------
   app.get('/shops',(req,res)=>{
@@ -44,45 +45,41 @@ app.use(session({
   });
   //---->Geting all liked shops<<<<---
   function AllShops(req,res){
-    UserShops.find({})
+    UserShops.find({user : req.session.user.email })
     .then(usershops =>{
         let LikedArray = [];
         usershops.forEach(usershop => {
           LikedArray.push(usershop.shop);
+
         });
-      ShopsException(LikedArray,res);
+        const Latitude = req.session.user.location.coordinates[0];
+        const Longitude = req.session.user.location.coordinates[1];
+      ShopsException(LikedArray,res,req.session.user.email,Latitude,Longitude);
     })
   }
   //---->Geting all shops execpt the liked ones<<<<---
-  function ShopsException(LikedArray,res){
-    Shops.find({_id : {$nin : LikedArray}})
+  function ShopsException(LikedArray,res,userEmail,lat,long){ 
+    Shops.find({_id : {$nin : LikedArray}
+    })
     .then(shop =>{
-      //nearby shops test with user session
-      /*"location": {
-        $near: {
-            $geometry:
-                { type: "Point",
-                coordinates: [req.session.user.location[0],
-                              req.session.user.location[1]] 
-                }
-        }
-    }*/
-      res.json(shop);
+      res.json({shop,userEmail});
     })
   }
+
+
 //------->CRUD Shops liked <<-----
   //--------> POST SHOPS <<<<------
   app.post('/shops',(req,res)=>{
     var shop = req.body;
     UserShops.create(shop,(err,ushop)=>{
       if(err) throw err;
-      AllShops(res);
+      AllShops(req,res);
     })
   });
 
   //--------> GET Liked Shops <<<<------
   app.get('/likedShop',(req,res)=>{
-    UserShops.find({liked:true})
+    UserShops.find({liked:true,user:req.session.user.email})
     .populate('shop')
     .then(shops=>{
         res.json(shops);
@@ -96,7 +93,7 @@ app.use(session({
     UserShops.remove(query,(deleteErr)=>{
       if(deleteErr) console.error("Error Delete Shop"+deleteErr);
       //Deleted Successfully and reredering liked shops
-      UserShops.find({liked:true})
+      UserShops.find({liked:true,user:req.session.user.email})
       .populate('shop')
       .then(shops=>{
         res.json(shops);
@@ -107,16 +104,17 @@ app.use(session({
 //----->Disliked Shops Read and Remove<<<<------
     //--------> GET Disliked Shops <<<<------
     app.get('/dislikedShop',(req,res)=>{
-      UserShops.find({liked:false})
+      UserShops.find({liked:false,user:req.session.user.email})
       .populate('shop')
       .then(shops=>{
+         
         res.json(shops);
     })
     });
     //--------> RERENDER Disliked Shop <<<<------
     app.delete('/dislikedShop/:_id',(req,res)=>{
       const userEmail = req.session.user.email;
-      let query = {shop:req.params._id};
+      let query = {shop:req.params._id,user:req.session.user.email};
       UserShops.remove(query,(deleteErr,data)=>{
         if(deleteErr) console.error("Error Delete Shop"+deleteErr);
         res.json(shops);
@@ -133,13 +131,13 @@ app.use(session({
       const currentPosition = {type:"Point",coordinates:[user.latitude,user.longitude]};
       
       if(email == ''){
-        errors.push('email required field!');
+        errors.push('email required field! ');
       }
       if(password != rpassword){
-        errors.push('Passwords do not match!');
+        errors.push('Passwords do not match! ');
       }
       if(password.length < 4 ){
-        errors.push('Password must be at least 4 caracters!');
+        errors.push('Password must be at least 4 caracters! ');
       }
       // Sending back the Form informations the "r" stands for Route 
       if(errors.length > 0){
@@ -150,7 +148,7 @@ app.use(session({
         User.findOne({email:email})
           .then(user => {
             if(user){
-              res.json({message : 'Email already regsitered'});
+              res.json({message : 'Email already regsitered '});
             }else{
               const newUser = new User({
                 email : email,
@@ -164,7 +162,7 @@ app.use(session({
                   newUser.password = hash;
                   newUser.save()
                     .then(user => {
-                      res.json({message : 'You are now registered and can log in'});
+                      res.json({message : 'success'});
                     })
                     .catch(err => {
                       console.log(err);
@@ -193,7 +191,7 @@ app.use(session({
               if(!isMatch) {
                 res.json({message : 'Password Incorrect'});
               }else{
-                  req.session.user = user;
+                  req.session.user = userFound;
                   req.session.save((err)=>{
                     if(err) throw err;
                     res.json({user:userFound,message:'success'});
@@ -204,8 +202,11 @@ app.use(session({
     });
     // Destroying the session 
       app.get('/logout',(req, res)=>{
-        req.session.destroy();
-        res.json({message : 'SessionDestroyed'});
+         req.session.destroy(function(err) {
+          if(err) throw err;
+          res.json({message : 'SessionDestroyed'});
+        })
+       
       });
 //------->User Side <<<<------
 // END APIs

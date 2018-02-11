@@ -58,6 +58,7 @@ export function GetDislikedShops(){
     return function(dispatch){
         axios.get("/api/dislikedShop")
            .then((response)=>{
+               console.log('data rednred from disliked shops action : ',response.data);
                dispatch({type:"GET_DISLIKED_SHOPS",payload:response.data})
            })
            .catch((err)=>{

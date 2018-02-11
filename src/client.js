@@ -17,7 +17,6 @@ import Main from './main';
 
 
 
-
 // Middlewares
 const Middlewares = applyMiddleware(thunk);
 // Creating the store with Middlewares
@@ -29,9 +28,10 @@ const Routes =  (
             <Route path='/' component={Main}>
                 <IndexRoute  component={Signin}/>
                 <Route path='/profile' component={Profile}/>
-                <Route path='/register' component={Register} page="home"/>
+                <Route path='/register' component={Register} />
                 <Route path='/shops' component={ShopList}/>
-                <Route path='/' component={Signin} page="home"/>
+                <Route path='/' component={Signin} />
+                <Route path='/' component={Signin} />
             </Route>
         </Router>
    </Provider>
@@ -44,9 +44,5 @@ render (
 //Showing the current state in console 
 store.subscribe(function(){
     console.log('current state is :', store.getState());
+
 });
-
-
-
-
-

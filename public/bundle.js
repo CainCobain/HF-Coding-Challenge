@@ -6873,6 +6873,7 @@ function RerenderShop(index) {
 function GetDislikedShops() {
     return function (dispatch) {
         _axios2.default.get("/api/dislikedShop").then(function (response) {
+            console.log('data rednred from disliked shops action : ', response.data);
             dispatch({ type: "GET_DISLIKED_SHOPS", payload: response.data });
         }).catch(function (err) {
             dispatch({ type: "REMOVE_DISLIKED_SHOP_REJECTED", payload: "there was an error while geting disliked shops" });
@@ -13190,6 +13191,10 @@ var _redux = __webpack_require__(19);
 
 var _userShopActions = __webpack_require__(110);
 
+var _axios = __webpack_require__(111);
+
+var _axios2 = _interopRequireDefault(_axios);
+
 var _reactDom = __webpack_require__(13);
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
@@ -13207,17 +13212,14 @@ var toRenderArr = [];
 
 // Initialize the Dislise array with disliked shops saved in the database 
 (function () {
-    var url = 'http://localhost:3000/api/dislikedShop';
-    fetch(url).then(function (resp) {
-        return resp.json();
-    }).then(function (data) {
-        if (data.length > 0) {
-            data.map(function (dataRes, i) {
-                DislikeArr.push(dataRes);
+    _axios2.default.get("/api/dislikedShop").then(function (response) {
+        if (response.data.length > 0) {
+            response.data.map(function (dislikedShop, i) {
+                DislikeArr.push(dislikedShop);
             });
         }
-    }).catch(function (error) {
-        console.log("Error geting disliked shops : ", error);
+    }).catch(function (err) {
+        console.log("there was an error while geting disliked shops");
     });
 })();
 
@@ -13233,10 +13235,13 @@ var ShopItem = function (_React$Component) {
             //Converting Dates to the same format 
             var currentDate = new Date();
             var currentDateISO = Date.parse(currentDate.toISOString());
-            var timeUpISO = Date.parse(DislikeArr.timeup);
+
             //Test if there is Disliked shops in the Dislike array
             if (DislikeArr.length > 0) {
+
                 DislikeArr.map(function (gotit, i) {
+                    //Time for every disliked shop in the list of disliked shops
+                    var timeUpISO = Date.parse(gotit.timeup);
                     if (currentDateISO > timeUpISO) {
                         // Disliked Shop time is up  'Two hours' and need to be re rendered     
                         var toRender = _react2.default.createElement(
@@ -13247,7 +13252,8 @@ var ShopItem = function (_React$Component) {
                                 picture: gotit.shop.picture,
                                 name: gotit.shop.name,
                                 email: gotit.shop.email,
-                                city: gotit.shop.city
+                                city: gotit.shop.city,
+                                session: gotit.user
                             })
                         );
                         toRenderArr.push(toRender);
@@ -13293,6 +13299,7 @@ var ShopItem = function (_React$Component) {
                     email: this.props.email,
                     city: this.props.city },
                 timeup: twoHoursLater.toISOString(),
+                user: this.props.session,
                 liked: false
             };
             //Add disliked shop to Dislike array 
@@ -13750,9 +13757,10 @@ var Routes = _react2.default.createElement(
             { path: '/', component: _main2.default },
             _react2.default.createElement(_reactRouter.IndexRoute, { component: _signin2.default }),
             _react2.default.createElement(_reactRouter.Route, { path: '/profile', component: _profile2.default }),
-            _react2.default.createElement(_reactRouter.Route, { path: '/register', component: _register2.default, page: 'home' }),
+            _react2.default.createElement(_reactRouter.Route, { path: '/register', component: _register2.default }),
             _react2.default.createElement(_reactRouter.Route, { path: '/shops', component: _shopList2.default }),
-            _react2.default.createElement(_reactRouter.Route, { path: '/', component: _signin2.default, page: 'home' })
+            _react2.default.createElement(_reactRouter.Route, { path: '/', component: _signin2.default }),
+            _react2.default.createElement(_reactRouter.Route, { path: '/', component: _signin2.default })
         )
     )
 );
@@ -48726,30 +48734,37 @@ var ShopsList = function (_React$Component) {
     }, {
         key: 'render',
         value: function render() {
-            var shopsList = this.props.shops.map(function (shopsArr) {
-                return _react2.default.createElement(
-                    _reactBootstrap.Col,
-                    { xs: 12, sm: 6, md: 4, key: shopsArr._id },
-                    _react2.default.createElement(_shopItem2.default, {
-                        _id: shopsArr._id,
-                        picture: shopsArr.picture,
-                        name: shopsArr.name,
-                        email: shopsArr.email,
-                        city: shopsArr.city
-                    })
-                );
-            });
 
-            return _react2.default.createElement(
-                _reactBootstrap.Grid,
-                null,
-                _react2.default.createElement(
-                    _reactBootstrap.Row,
-                    { style: { marginTop: '15px' } },
-                    _react2.default.createElement('div', { id: 'parentComp' }),
-                    shopsList
-                )
-            );
+            var shops = this.props.shops.shop;
+            var sessionUser = this.props.shops.userEmail;
+            if (typeof shops != 'undefined') {
+                var shopsList = shops.map(function (shopsArr) {
+                    return _react2.default.createElement(
+                        _reactBootstrap.Col,
+                        { xs: 12, sm: 6, md: 4, key: shopsArr._id },
+                        _react2.default.createElement(_shopItem2.default, {
+                            _id: shopsArr._id,
+                            picture: shopsArr.picture,
+                            name: shopsArr.name,
+                            email: shopsArr.email,
+                            city: shopsArr.city,
+                            session: sessionUser
+                        })
+                    );
+                });
+                return _react2.default.createElement(
+                    _reactBootstrap.Grid,
+                    null,
+                    _react2.default.createElement(
+                        _reactBootstrap.Row,
+                        { style: { marginTop: '15px' } },
+                        _react2.default.createElement('div', { id: 'parentComp' }),
+                        shopsList
+                    )
+                );
+            }
+
+            return _react2.default.createElement(_reactBootstrap.Grid, null);
         }
     }]);
 
@@ -48869,6 +48884,16 @@ var Signin = function (_React$Component) {
             return _react2.default.createElement(
                 _reactBootstrap.Well,
                 null,
+                this.props.user.message && this.props.user.message != 'success' ? _react2.default.createElement(
+                    _reactBootstrap.Alert,
+                    { bsStyle: 'danger' },
+                    _react2.default.createElement(
+                        'strong',
+                        null,
+                        this.props.user.message,
+                        '!'
+                    )
+                ) : '',
                 _react2.default.createElement(
                     _reactBootstrap.Form,
                     { horizontal: true },
@@ -48975,6 +49000,8 @@ var _reactRedux = __webpack_require__(24);
 
 var _redux = __webpack_require__(19);
 
+var _reactRouter = __webpack_require__(128);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -49007,10 +49034,13 @@ var Register = function (_React$Component) {
             };
             this.props.AddUser(registerForm);
         }
+
+        // Redirect to login component after registeration return success msg
+
     }, {
         key: 'componentDidUpdate',
         value: function componentDidUpdate() {
-            console.log("error messages : ", this.props.user.message);
+            if (this.props.user.message == "success") _reactRouter.browserHistory.push('/');
         }
     }, {
         key: 'render',
@@ -49018,18 +49048,16 @@ var Register = function (_React$Component) {
             return _react2.default.createElement(
                 _reactBootstrap.Well,
                 null,
-                this.props.user.message ? this.props.user.message.map(function (msg, i) {
+                this.props.user.message ? _react2.default.createElement(
+                    _reactBootstrap.Alert,
+                    { bsStyle: 'danger' },
                     _react2.default.createElement(
-                        _reactBootstrap.Alert,
-                        { bsStyle: 'info', key: i },
-                        _react2.default.createElement(
-                            'strong',
-                            null,
-                            msg,
-                            '!'
-                        )
-                    );
-                }) : '',
+                        'strong',
+                        null,
+                        this.props.user.message,
+                        '!'
+                    )
+                ) : '',
                 _react2.default.createElement(
                     _reactBootstrap.Form,
                     { horizontal: true },

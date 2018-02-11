@@ -5,8 +5,9 @@ import {findDOMNode} from 'react-dom';
 import {AddUser} from '../../actions/userActions';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-let latitude,longitude ;
+import { browserHistory } from 'react-router';
 
+let latitude,longitude ;
 
 class Register extends React.Component {
 
@@ -20,19 +21,22 @@ class Register extends React.Component {
         };
        this.props.AddUser(registerForm); 
     }
+
+    // Redirect to login component after registeration return success msg
     componentDidUpdate(){
-       console.log("error messages : ",this.props.user.message);
+        if(this.props.user.message == "success") browserHistory.push('/');
+
     }
 
     render() {
       return (
         <Well>
-        {(this.props.user.message)?  
-            this.props.user.message.map((msg,i)=>{ 
-                <Alert bsStyle="info" key={i}>
-                    <strong>{msg}!</strong>
+       {(this.props.user.message)?  
+            (
+                <Alert bsStyle="danger">
+                    <strong>{this.props.user.message}!</strong>
                 </Alert>
-            }):''
+            ):''
         }
          <Form horizontal>
            <FormGroup controlId="formHorizontalEmail">

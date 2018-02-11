@@ -4,6 +4,7 @@ import {Image, Row, Col, Grid, Button, Well } from 'react-bootstrap';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {LikeShop,RemoveShop,RerenderShop} from '../../actions/userShopActions';
+import axios from 'axios';
 import ReactDOM from 'react-dom';
 
 let DislikeArr = [];
@@ -11,20 +12,18 @@ let toRenderArr = [];
   
 // Initialize the Dislise array with disliked shops saved in the database 
 (function (){
-            const url = 'http://localhost:3000/api/dislikedShop';
-            fetch(url)
-            .then((resp) =>resp.json())
-            .then(function(data) {
-                if(data.length > 0){
-                    data.map((dataRes,i)=>{
-                        DislikeArr.push(dataRes);
-                    })
-                }  
-            })
-            .catch(function(error) {
-                console.log("Error geting disliked shops : ",error);
-            });
-    })();
+    axios.get("/api/dislikedShop")
+    .then((response)=>{
+    if(response.data.length > 0){
+        response.data.map((dislikedShop,i) => {   
+         DislikeArr.push(dislikedShop);
+        })
+    }
+    })
+    .catch((err)=>{
+        console.log("there was an error while geting disliked shops");
+    })
+})();
 
 class ShopItem extends React.Component{
 
@@ -33,6 +32,7 @@ class ShopItem extends React.Component{
         this.handleLike = this.handleLike.bind(this);
         this.handleDislike = this.handleDislike.bind(this);
        }
+
  
     //Add liked shops to db and remove it from the parent component
     handleLike(){
@@ -55,6 +55,7 @@ class ShopItem extends React.Component{
                 email:this.props.email,
                 city:this.props.city},
                 timeup:twoHoursLater.toISOString(),
+                user:this.props.session,
                 liked:false
             })
         //Add disliked shop to Dislike array 
@@ -68,10 +69,14 @@ class ShopItem extends React.Component{
             //Converting Dates to the same format 
             const currentDate = new Date();
             const currentDateISO = Date.parse(currentDate.toISOString());
-            const timeUpISO = Date.parse(DislikeArr.timeup);
+            
+            
             //Test if there is Disliked shops in the Dislike array
             if(DislikeArr.length>0){
+                
                 DislikeArr.map((gotit,i)=>{
+                //Time for every disliked shop in the list of disliked shops
+                const timeUpISO = Date.parse(gotit.timeup);
                 if(currentDateISO>timeUpISO){
                 // Disliked Shop time is up  'Two hours' and need to be re rendered     
                 let toRender = (<Col xs={12} sm={6} md={4} >
@@ -81,6 +86,7 @@ class ShopItem extends React.Component{
                             name={gotit.shop.name}
                             email={gotit.shop.email}                
                             city={gotit.shop.city}
+                            session={gotit.user}
                         />
                     </Col>);
                     toRenderArr.push(toRender); 

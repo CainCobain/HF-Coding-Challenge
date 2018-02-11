@@ -1,6 +1,6 @@
 "use strict"
 import React from 'react';
-import {Form, FormGroup, Col, FormControl, Button, ControlLabel, Panel, Well, Row} from 'react-bootstrap';
+import {Form, FormGroup, Col, FormControl, Button, ControlLabel, Panel, Well, Row, Alert} from 'react-bootstrap';
 import {findDOMNode} from 'react-dom';
 import {ConnectUser} from '../../actions/userActions';
 import {bindActionCreators} from 'redux';
@@ -17,7 +17,7 @@ class Signin extends React.Component {
         };
        this.props.ConnectUser(signinForm);
     }
-
+    
     // Redirect to shops component after login return success msg
     componentDidUpdate(){
         if(this.props.user.message == "success") browserHistory.push('/shops');
@@ -26,6 +26,13 @@ class Signin extends React.Component {
     render() {
       return ( 
         <Well>
+        {(this.props.user.message && this.props.user.message != 'success')?  
+            (
+                <Alert bsStyle="danger">
+                    <strong>{this.props.user.message}!</strong>
+                </Alert>
+            ):''
+        }
           <Form horizontal>
             <FormGroup controlId="formHorizontalEmail">
                 <Col componentClass={ControlLabel} sm={3}>

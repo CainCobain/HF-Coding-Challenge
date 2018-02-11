@@ -2,7 +2,7 @@
 
 ## Introduction 
 
-First of all this is just the first version of the coding challenge, there is still some changes (access controle and handling user session )I will make soon and some code optimization .All you need to do is clone or download the project and run the following cmd :
+First of all this is just the first version of the coding challenge, there is still some taskes that are missing such as (access controle and nearby shops sorting ).All you need to do is clone or download the project and run the following cmd :
 
   - npm install => install all the packges from package.json file
 	- nodemon => run the express server and API server on the port 3001

@@ -10,13 +10,19 @@ import ShopItem from './shopItem';
 class ShopsList extends React.Component{
     constructor(){
         super();
+       
     }
     componentDidMount(){
         //Dispatche get
         this.props.GetShops();
     }
     render(){
-        const shopsList = this.props.shops.map(function(shopsArr){
+
+     
+        const shops = this.props.shops.shop;
+        const sessionUser = this.props.shops.userEmail;
+        if(typeof shops != 'undefined'){
+            const shopsList = shops.map(function(shopsArr){
             return (
                 <Col xs={12} sm={6} md={4} key={shopsArr._id}>
                     <ShopItem
@@ -25,22 +31,26 @@ class ShopsList extends React.Component{
                         name={shopsArr.name}
                         email={shopsArr.email}                  
                         city={shopsArr.city}
+                        session={sessionUser}
                     />
                 </Col>
             )
         });
-       
+            return(
+                    <Grid >       
+                        <Row style={{marginTop:'15px'}} >
+                        <div id="parentComp"></div>
+                            {shopsList}
+                        </Row>
+                    </Grid>
+            
+            )  
+        }
+
         return(
-                <Grid >       
-               
-                    <Row style={{marginTop:'15px'}} >
-                    <div id="parentComp"></div>
-                       
-                         {shopsList}
-                     </Row>
-                </Grid>
-          
-        )  
+            <Grid></Grid>
+        )
+        
     }
 }
 function mapStateToProps(state){
