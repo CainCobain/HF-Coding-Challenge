@@ -23,12 +23,12 @@ ps : you don't have to setup mongodb locally!
 ## Project structure 
 
 The project is composed of two parts :
-	- Server Side contain three main files :
-	  -> server : Midleware for public folder,listner on port 3000 and sending the index file for all links .
-	  -> app : Setting up the proxy .
-	  -> apiServer : handling all the requests .
-	- Client Side (the src folder) and it contains  :
-	  -> actions folder : CRUD sent through axios to apiSever .
-	  -> reducer folder : Get the dispatch action and return the result .
-	  -> component folder : With all the componenets .
+- Server Side contain three main files :
+  - server : Midleware for public folder,listner on port 3000 and sending the index file for all links .
+  - app : Setting up the proxy .
+  - apiServer : handling all the requests .
+- Client Side (the src folder) and it contains  :
+  - actions folder : CRUD sent through axios to apiSever .
+  - reducer folder : Get the dispatch action and return the result .
+  - component folder : With all the componenets .
 
